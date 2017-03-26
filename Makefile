@@ -23,7 +23,33 @@
 CC=gcc
 CFLAGS=-Wall -g
 
+all: run_test run_test_a run_test_so
+
+run_test: test_list
+	./$<
+
+run_test_a: test_list_a
+	./$<
+
+run_test_so: test_list_so
+	LD_LIBRARY_PATH=. ./$<
+
 test_list: test_list.o list.o list.h
 
+test_list_a: test_list.o list.h liblist.a
+	$(CC) $< -L. -static -llist -o $@
+
+test_list_so: test_list.o list.h liblist.so
+	$(CC) $< -L. -llist -o $@
+
+liblist.a: liblist.a(list.o)
+	ranlib liblist.a
+
+list-pic.o: list.c
+	$(CC) -fPIC -c $< -o $@
+
+liblist.so: list-pic.o
+	$(CC) -shared -o $@ $<
+
 clean:
-	rm -f test_list test_list.o list.o
+	rm -f test_list test_list_a test_list_so test_list.o list.o liblist.a list-pic.o liblist.so
